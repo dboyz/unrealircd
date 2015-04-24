@@ -1376,11 +1376,22 @@ int _register_user(aClient *cptr, aClient *sptr, char *nick, char *username, cha
 
 #ifdef USE_SSL
 		if (sptr->flags & FLAGS_SSL)
+		{
 			if (sptr->ssl)
+			{
 				sendto_one(sptr,
 				    ":%s NOTICE %s :*** You are connected to %s with %s",
 				    me.name, sptr->name, me.name,
 				    ssl_get_cipher(sptr->ssl));
+				/* Client's fingerprint will be sent to the client itself and linked servers */
+				if (!BadPtr(sptr->certfp))
+				{
+					sendto_one(sptr,
+						":%s NOTICE %s :*** Your SSL fingerprint is %s",
+						me.name, sptr->name, sptr->certfp);
+				}
+			}
+		}
 #endif
 		do_cmd(sptr, sptr, "LUSERS", 1, parv);
 		short_motd(sptr);
@@ -1471,6 +1482,18 @@ int _register_user(aClient *cptr, aClient *sptr, char *nick, char *username, cha
 	    user->server, user->svid, sptr->info,
 	    (*buf == '\0' ? "+" : buf),
 	    sptr->umodes & UMODE_SETHOST ? sptr->user->virthost : NULL);
+	
+#ifdef USE_SSL
+	if (MyConnect(sptr))
+	{
+		if (!BadPtr(sptr->certfp))
+		{
+			sendto_server(cptr, 0, 0,
+				":%s CERTFP %s :%s",
+				me.name, sptr->name, sptr->certfp);
+		}
+	}
+#endif
 
 	if (MyConnect(sptr))
 	{
@@ -1546,4 +1569,3 @@ int _register_user(aClient *cptr, aClient *sptr, char *nick, char *username, cha
 	}
 	return 0;
 }
-

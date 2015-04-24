@@ -11,3 +11,4 @@ extern	 int ircd_SSL_connect(aClient *acptr, int fd);
 extern	 int SSL_smart_shutdown(SSL *ssl);
 extern	 void ircd_SSL_client_handshake(int, int, void *);
 extern   void SSL_set_nonblocking(SSL *s);
+extern   int GetFingerprint(aClient *);

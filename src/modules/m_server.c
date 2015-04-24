@@ -758,6 +758,14 @@ int	m_server_synch(aClient *cptr, ConfigItem_link *aconf)
 
 			sendto_one_nickcmd(cptr, acptr, buf);
 			
+#ifdef USE_SSL
+			if (!BadPtr(acptr->certfp))
+			{
+				sendto_one(cptr, "CERTFP %s :%s",
+					CHECKPROTO(cptr, PROTO_SID) ? ID(acptr) : acptr->name, acptr->certfp);
+			}
+#endif
+			
 			send_moddata_client(cptr, acptr);
 
 			if (acptr->user->away)

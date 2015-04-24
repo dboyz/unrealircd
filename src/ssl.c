@@ -594,28 +594,29 @@ int ircd_SSL_accept(aClient *acptr, int fd) {
     int ssl_err;
 
     if((ssl_err = SSL_accept((SSL *)acptr->ssl)) <= 0) {
-	switch(ssl_err = SSL_get_error((SSL *)acptr->ssl, ssl_err)) {
-	    case SSL_ERROR_SYSCALL:
-		if (ERRNO == P_EINTR || ERRNO == P_EWOULDBLOCK
-			|| ERRNO == P_EAGAIN)
-		    return 1;
-	    case SSL_ERROR_WANT_READ:
-		fd_setselect(fd, FD_SELECT_READ, ircd_SSL_accept_retry, acptr);
-		fd_setselect(fd, FD_SELECT_WRITE, NULL, acptr);
-		return 1;
-	    case SSL_ERROR_WANT_WRITE:
-		fd_setselect(fd, FD_SELECT_READ, NULL, acptr);
-		fd_setselect(fd, FD_SELECT_WRITE, ircd_SSL_accept_retry, acptr);
-		return 1;
-	    default:
-		return fatal_ssl_error(ssl_err, SAFE_SSL_ACCEPT, ERRNO, acptr);
-		
-	}
+		switch(ssl_err = SSL_get_error((SSL *)acptr->ssl, ssl_err)) {
+			case SSL_ERROR_SYSCALL:
+			if (ERRNO == P_EINTR || ERRNO == P_EWOULDBLOCK
+				|| ERRNO == P_EAGAIN)
+				return 1;
+			case SSL_ERROR_WANT_READ:
+			fd_setselect(fd, FD_SELECT_READ, ircd_SSL_accept_retry, acptr);
+			fd_setselect(fd, FD_SELECT_WRITE, NULL, acptr);
+			return 1;
+			case SSL_ERROR_WANT_WRITE:
+			fd_setselect(fd, FD_SELECT_READ, NULL, acptr);
+			fd_setselect(fd, FD_SELECT_WRITE, ircd_SSL_accept_retry, acptr);
+			return 1;
+			default:
+			return fatal_ssl_error(ssl_err, SAFE_SSL_ACCEPT, ERRNO, acptr);
+			
+		}
 	/* NOTREACHED */
 	return -1;
     }
-
-    start_of_normal_client_handshake(acptr);
+	if(!GetFingerprint(acptr))
+		ircd_log(LOG_ERROR, "Unable to obtain client fingerprint");
+	start_of_normal_client_handshake(acptr);
 
     return 1;
 }
@@ -666,6 +667,43 @@ int SSL_smart_shutdown(SSL *ssl) {
     }
 
     return rc;
+}
+
+/* 
+ * Obtain client's fingerprint.
+ * return 1 if client's fingerprint is obtained
+ * return 0 if client's fingerprint is not found and certfp is set to NULL
+ */
+int GetFingerprint(aClient *cptr)
+{
+	unsigned int n;
+	unsigned int l;
+	unsigned int j;
+	unsigned char md[EVP_MAX_MD_SIZE];
+	char *hex;
+	hex = MyMallocEx(EVP_MAX_MD_SIZE * 2 + 1);
+	char hexchars[16] = "0123456789abcdef";
+	const EVP_MD *digest = EVP_sha256();
+	X509 *x509_clientcert = NULL;
+	
+	x509_clientcert = SSL_get_peer_certificate((SSL *)cptr->ssl);
+	if (x509_clientcert)
+	{
+		if (X509_digest(x509_clientcert, digest, md, &n)) {
+			j = 0;
+			for	(l=0; l<n; l++) {
+				hex[j++] = hexchars[(md[l] >> 4) & 0xF];
+				hex[j++] = hexchars[md[l] & 0xF];
+			}
+			hex[j] = '\0';
+			cptr->certfp = hex;
+			X509_free(x509_clientcert);
+			return 1;
+		}
+		X509_free(x509_clientcert);
+	}
+	cptr->certfp = NULL;
+	return 0;
 }
 
 /**

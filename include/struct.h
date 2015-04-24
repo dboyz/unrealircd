@@ -996,6 +996,7 @@ struct Client {
 	long receiveM;		/* Statistics: protocol messages received */
 #ifdef USE_SSL
 	SSL		*ssl;
+	char	*certfp; /* Fingerprint hexstring for this client -Nath,dboyz */
 #elif defined(_WIN32)
 	void	*ssl_NOTUSED; /* (win32 binary compatability) */
 #endif
