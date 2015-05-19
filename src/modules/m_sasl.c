@@ -221,6 +221,8 @@ static int m_sasl(aClient *cptr, aClient *sptr, int parc, char *parv[])
 
 			*target_p->sasl_agent = '\0';
 		}
+		else if (*parv[3] == 'M')
+			sendto_one(target_p, err_str(RPL_SASLMECHS), me.name, BadPtr(target_p->name) ? "*" : target_p->name, parv[4]);
 
 		return 0;
 	}
