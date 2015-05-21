@@ -274,45 +274,6 @@ char *unrealinfo[] =
 	NULL
 };
 
-void m_info_send(aClient *sptr)
-{
-char **text = unrealinfo;
-
-	sendto_one(sptr, ":%s %d %s :=-=-=-= %s =-=-=-=",
-	    me.name, RPL_INFO, sptr->name, IRCDTOTALVERSION);
-
-	while (*text)
-		sendto_one(sptr, ":%s %d %s :| %s", 
-		    me.name, RPL_INFO, sptr->name, *text++);
-
-	sendto_one(sptr, ":%s %d %s :|", me.name, RPL_INFO, sptr->name);
-	sendto_one(sptr, ":%s %d %s :|", me.name, RPL_INFO, sptr->name);
-	sendto_one(sptr, ":%s %d %s :| Credits - Type /Credits",
-	    me.name, RPL_INFO, sptr->name);
-	sendto_one(sptr, ":%s %d %s :| DALnet Credits - Type /DalInfo",
-	    me.name, RPL_INFO, sptr->name);
-	sendto_one(sptr, ":%s %d %s :|", me.name, RPL_INFO, sptr->name);
-	sendto_one(sptr, ":%s %d %s :| This is an UnrealIRCd-style server",
-	    me.name, RPL_INFO, sptr->name);
-	sendto_one(sptr, ":%s %d %s :| If you find any bugs, please report them at:",
-	    me.name, RPL_INFO, sptr->name);
-	sendto_one(sptr, ":%s %d %s :|  http://bugs.unrealircd.org/",
-	    me.name, RPL_INFO, sptr->name);
-	sendto_one(sptr,
-	    ":%s %d %s :| UnrealIRCd Homepage: http://www.unrealircd.com",
-	    me.name, RPL_INFO, sptr->name);
-	sendto_one(sptr,
-	    ":%s %d %s :-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=", me.name,
-	    RPL_INFO, sptr->name);
-	sendto_one(sptr, ":%s %d %s :Birth Date: %s, compile # %s", me.name,
-	    RPL_INFO, sptr->name, creation, generation);
-	sendto_one(sptr, ":%s %d %s :On-line since %s", me.name, RPL_INFO,
-	    sptr->name, myctime(me.firsttime));
-	sendto_one(sptr, ":%s %d %s :ReleaseID (%s)", me.name, RPL_INFO,
-	    sptr->name, buildid);
-	sendto_one(sptr, rpl_str(RPL_ENDOFINFO), me.name, sptr->name);
-}
-
 /*
 ** m_info
 **	parv[0] = sender prefix
@@ -327,7 +288,41 @@ CMD_FUNC(m_info)
 
 	if (hunt_server(cptr, sptr, ":%s INFO :%s", 1, parc, parv) == HUNTED_ISME)
 	{
-		m_info_send(sptr);
+		char **text = unrealinfo;
+
+		sendto_one(sptr, ":%s %d %s :=-=-=-= %s =-=-=-=",
+			me.name, RPL_INFO, sptr->name, IRCDTOTALVERSION);
+
+		while (*text)
+			sendto_one(sptr, ":%s %d %s :| %s", 
+				me.name, RPL_INFO, sptr->name, *text++);
+
+		sendto_one(sptr, ":%s %d %s :|", me.name, RPL_INFO, sptr->name);
+		sendto_one(sptr, ":%s %d %s :|", me.name, RPL_INFO, sptr->name);
+		sendto_one(sptr, ":%s %d %s :| Credits - Type /Credits",
+			me.name, RPL_INFO, sptr->name);
+		sendto_one(sptr, ":%s %d %s :| DALnet Credits - Type /DalInfo",
+			me.name, RPL_INFO, sptr->name);
+		sendto_one(sptr, ":%s %d %s :|", me.name, RPL_INFO, sptr->name);
+		sendto_one(sptr, ":%s %d %s :| This is an UnrealIRCd-style server",
+			me.name, RPL_INFO, sptr->name);
+		sendto_one(sptr, ":%s %d %s :| If you find any bugs, please report them at:",
+			me.name, RPL_INFO, sptr->name);
+		sendto_one(sptr, ":%s %d %s :|  http://bugs.unrealircd.org/",
+			me.name, RPL_INFO, sptr->name);
+		sendto_one(sptr,
+			":%s %d %s :| UnrealIRCd Homepage: http://www.unrealircd.com",
+			me.name, RPL_INFO, sptr->name);
+		sendto_one(sptr,
+			":%s %d %s :-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=", me.name,
+			RPL_INFO, sptr->name);
+		sendto_one(sptr, ":%s %d %s :Birth Date: %s, compile # %s", me.name,
+			RPL_INFO, sptr->name, creation, generation);
+		sendto_one(sptr, ":%s %d %s :On-line since %s", me.name, RPL_INFO,
+			sptr->name, myctime(me.firsttime));
+		sendto_one(sptr, ":%s %d %s :ReleaseID (%s)", me.name, RPL_INFO,
+			sptr->name, buildid);
+		sendto_one(sptr, rpl_str(RPL_ENDOFINFO), me.name, sptr->name);
 	}
 
 	return 0;
